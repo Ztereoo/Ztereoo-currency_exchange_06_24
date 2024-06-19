@@ -115,4 +115,5 @@ def callback(call):
 
 if __name__ == '__main__':
     print('Бот запущен')
+    print('It all works')
     bot.polling(none_stop=True)
