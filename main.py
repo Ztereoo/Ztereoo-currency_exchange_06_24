@@ -1,8 +1,6 @@
 import telebot
 from telebot import types
 import requests
-import os
-import sys
 from config import TOKEN
 
 bot = telebot.TeleBot(TOKEN)
@@ -10,7 +8,7 @@ bot = telebot.TeleBot(TOKEN)
 link = 'https://www.cbr-xml-daily.ru/daily_json.js'
 
 reply = requests.get(link)
-Date = reply.json()['Date']
+Date = '-'.join(reply.json()['Date'][:10].split('-')[::-1])
 USD = round(reply.json()['Valute']['USD']['Value'], 2)
 EUR = round(reply.json()['Valute']['EUR']['Value'], 2)
 GBP = round(reply.json()['Valute']['GBP']['Value'], 2)
@@ -18,10 +16,8 @@ TRY = round(reply.json()['Valute']['TRY']['Value'] / 10, 2)
 
 d = {}
 q = {}
-
-
 def calculate_sell(amount, valute):
-    res = ''
+    res = 0
     if valute == 'USD':
         res = amount * USD
     elif valute == 'EUR':
@@ -32,9 +28,8 @@ def calculate_sell(amount, valute):
         res = amount * TRY
     return round(res, 2)
 
-
 def calculate_buy(amount, valute):
-    res = ''
+    res = 0
     if valute == 'USD':
         res = amount / USD
     elif valute == 'EUR':
@@ -45,22 +40,14 @@ def calculate_buy(amount, valute):
         res = amount / TRY
     return round(res, 2)
 
-
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.send_message(message.chat.id,
-                     f'Курс валют ЦБ РФ\nна {Date[:10]}:\nДоллар - {USD}\nЕвро - {EUR}\nБританский фунт - {GBP}\nТурецкая лира - {TRY}')
-    bot.send_message(message.chat.id, 'введите число, чтобы рассчитать сумму')
+                     f'Курс валют ЦБ РФ\nна <b>{Date}</b>:\nДоллар - <b>{USD}</b>\nЕвро - <b>{EUR}</b>\nБританский фунт '
+                     f'- <b>{GBP}</b>\nТурецкая лира - <b>{TRY}</b>',parse_mode='HTML')
+    bot.send_message(message.chat.id, 'введите вашу сумму')
     q[message.chat.id] = False
     bot.register_next_step_handler(message, convert)
-
-
-@bot.message_handler(commands=['restart'])
-def restart_bot(message):
-    bot.reply_to(message, "Бот перезапустился...")
-    bot.send_message(message.chat.id, f'Введите /start чтобы начать еще раз')
-    os.execv(sys.executable, ['python'] + sys.argv)
-
 
 def convert(message):
     try:
@@ -98,22 +85,29 @@ def callback(call):
     value = call.data.split('/')
     chat_id = call.message.chat.id
     amount = d[chat_id]
+    text=f'-введите <b>новую сумму</b> чтобы посчитать снова\n-введите <b>start</b> чтобы вернуться к курсу валют'
     if call.data == 'USD/RUB' or call.data == 'EUR/RUB' or call.data == 'GBP/RUB' or call.data == 'TRY/RUB':
         res = calculate_sell(amount, value[0])
         bot.send_message(call.message.chat.id,
-                         f'Готово-{res} ₽\nМожем посчитать еще ')
+                         f'Готово-<b>{res}</b> ₽ \n',parse_mode='HTML')
 
     else:
         res = calculate_buy(amount, value[1])
         bot.send_message(call.message.chat.id,
-                         f'Готово-{res} {value[1]}\nМожем посчитать еще ')
+                         f'Готово-{res} {value[1]} \n')
 
     if q[chat_id] == False:
         q[chat_id] = True
-        bot.register_next_step_handler(call.message, convert)
+        bot.send_message(call.message.chat.id,f'{text}',parse_mode='HTML')
+        bot.register_next_step_handler(call.message, question)
 
+def question(message):
+    reply=message.text
+    if reply=='start':
+        start(message)
+    else:
+        convert(message)
 
 if __name__ == '__main__':
     print('Бот запущен')
-    print('It all works')
     bot.polling(none_stop=True)
