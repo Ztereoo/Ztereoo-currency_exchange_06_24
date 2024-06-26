@@ -102,7 +102,7 @@ def callback(call):
         bot.register_next_step_handler(call.message, question)
 
 def question(message):
-    reply=message.text
+    reply=message.text.lower()
     if reply=='start':
         start(message)
     else:
