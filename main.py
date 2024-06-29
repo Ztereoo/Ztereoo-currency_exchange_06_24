@@ -7,13 +7,15 @@ bot = telebot.TeleBot(TOKEN)
 
 link = 'https://www.cbr-xml-daily.ru/daily_json.js'
 
-reply = requests.get(link)
-Date = '-'.join(reply.json()['Date'][:10].split('-')[::-1])
-USD = round(reply.json()['Valute']['USD']['Value'], 2)
-EUR = round(reply.json()['Valute']['EUR']['Value'], 2)
-GBP = round(reply.json()['Valute']['GBP']['Value'], 2)
-TRY = round(reply.json()['Valute']['TRY']['Value'] / 10, 2)
+reply = requests.get(link).json()
+Date='-'.join(reply.get('Date')[:10].split('-')[::-1])
+USD = round(reply.get('Valute')['USD']['Value'], 2)
+EUR = round(reply.get('Valute')['EUR']['Value'], 2)
+GBP = round(reply.get('Valute')['GBP']['Value'], 2)
+TRY = round(reply.get('Valute')['TRY']['Value'], 2)
+GEL = round(reply.get('Valute')['GEL']['Value'], 2)
 
+print(USD,EUR,GBP,TRY,GEL)
 d = {}
 q = {}
 def calculate_sell(amount, valute):
@@ -44,7 +46,7 @@ def calculate_buy(amount, valute):
 def start(message):
     bot.send_message(message.chat.id,
                      f'Курс валют ЦБ РФ\nна <b>{Date}</b>:\nДоллар - <b>{USD}</b>\nЕвро - <b>{EUR}</b>\nБританский фунт '
-                     f'- <b>{GBP}</b>\nТурецкая лира - <b>{TRY}</b>',parse_mode='HTML')
+                     f'- <b>{GBP}</b>\nТурецкая лира - <b>{TRY}</b>\nГрузинский лари - <b>{GEL}</b>',parse_mode='HTML')
     bot.send_message(message.chat.id, 'введите вашу сумму')
     q[message.chat.id] = False
     bot.register_next_step_handler(message, convert)
