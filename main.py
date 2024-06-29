@@ -28,6 +28,8 @@ def calculate_sell(amount, valute):
         res = amount * GBP
     elif valute == 'TRY':
         res = amount * TRY
+    elif valute == 'GEL':
+        res = amount * GEL
     return round(res, 2)
 
 def calculate_buy(amount, valute):
@@ -40,6 +42,8 @@ def calculate_buy(amount, valute):
         res = amount / GBP
     elif valute == 'TRY':
         res = amount / TRY
+    elif valute == 'GEL':
+        res = amount / GEL
     return round(res, 2)
 
 @bot.message_handler(commands=['start'])
@@ -69,12 +73,14 @@ def convert(message):
         btn2 = types.InlineKeyboardButton('EUR/RUB', callback_data='EUR/RUB')
         btn3 = types.InlineKeyboardButton('GBP/RUB', callback_data='GBP/RUB')
         btn4 = types.InlineKeyboardButton('TRY/RUB', callback_data='TRY/RUB')
-        markup.add(btn1, btn2, btn3, btn4)
+        btn5 = types.InlineKeyboardButton('GEL/RUB', callback_data='GEL/RUB')
+        markup.add(btn1, btn2, btn3, btn4, btn5)
         btn5 = types.InlineKeyboardButton('RUB/USD', callback_data='RUB/USD')
         btn6 = types.InlineKeyboardButton('RUB/EUR', callback_data='RUB/EUR')
         btn7 = types.InlineKeyboardButton('RUB/GBP', callback_data='RUB/GBP')
         btn8 = types.InlineKeyboardButton('RUB/TRY', callback_data='RUB/TRY')
-        markup.add(btn5, btn6, btn7, btn8)
+        btn9 = types.InlineKeyboardButton('RUB/GEL', callback_data='RUB/GEL')
+        markup.add(btn5, btn6, btn7, btn8,btn9)
         bot.send_message(message.chat.id, "Выберите пару валют",
                          reply_markup=markup)
     else:
@@ -88,7 +94,7 @@ def callback(call):
     chat_id = call.message.chat.id
     amount = d[chat_id]
     text=f'-введите <b>новую сумму</b> чтобы посчитать снова\n-введите <b>start</b> чтобы вернуться к курсу валют'
-    if call.data == 'USD/RUB' or call.data == 'EUR/RUB' or call.data == 'GBP/RUB' or call.data == 'TRY/RUB':
+    if call.data == 'USD/RUB' or call.data == 'EUR/RUB' or call.data == 'GBP/RUB' or call.data == 'TRY/RUB' or call.data == 'GEL/RUB':
         res = calculate_sell(amount, value[0])
         bot.send_message(call.message.chat.id,
                          f'Готово-<b>{res}</b> ₽ \n',parse_mode='HTML')
